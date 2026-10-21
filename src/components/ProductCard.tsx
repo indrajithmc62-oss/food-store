@@ -9,8 +9,15 @@ interface Props {
 }
 
 export default function ProductCard({ product, quantity, onAdd, onChangeQuantity }: Props) {
-  // If /products/{id}.webp is missing or fails to load, we show the emoji instead.
+  // Try .webp first, then .jpg, then fall back to the emoji.
+  const sources = [`/products/${product.id}.webp`, `/products/${product.id}.jpg`];
+  const [attempt, setAttempt] = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
+
+  const handleError = () => {
+    if (attempt < sources.length - 1) setAttempt(attempt + 1);
+    else setImgFailed(true);
+  };
 
   return (
     <div className="flex flex-col rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200 transition hover:shadow-md">
@@ -19,12 +26,13 @@ export default function ProductCard({ product, quantity, onAdd, onChangeQuantity
           product.emoji
         ) : (
           <img
-            src={`/products/${product.id}.webp`}
+            key={sources[attempt]}
+            src={sources[attempt]}
             alt={product.name}
             width={400}
             height={160}
             loading="lazy"
-            onError={() => setImgFailed(true)}
+            onError={handleError}
             className="h-full w-full object-cover"
           />
         )}
